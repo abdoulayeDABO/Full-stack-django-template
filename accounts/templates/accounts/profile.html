@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Mon profil{% endblock %}
+
+{% block content %}
+  <section class="max-w-3xl px-6 py-10 mx-auto">
+    <div class="flex flex-col gap-6">
+      <div class="flex flex-col gap-1">
+        <h1 class="text-2xl font-bold tracking-tight">Mon profil</h1>
+        <p class="text-gray-500">Gérez les informations de votre compte.</p>
+      </div>
+
+      <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+        <dl class="grid gap-6 sm:grid-cols-2">
+          <div class="flex flex-col gap-1">
+            <dt class="text-sm text-gray-500">Nom d'utilisateur</dt>
+            <dd class="font-medium text-gray-900">{{ user.username }}</dd>
+          </div>
+          <div class="flex flex-col gap-1">
+            <dt class="text-sm text-gray-500">Email</dt>
+            <dd class="font-medium text-gray-900">{{ user.email|default:"—" }}</dd>
+          </div>
+          <div class="flex flex-col gap-1">
+            <dt class="text-sm text-gray-500">Inscrit le</dt>
+            <dd class="font-medium text-gray-900">{{ user.date_joined|date:"d/m/Y" }}</dd>
+          </div>
+          <div class="flex flex-col gap-1">
+            <dt class="text-sm text-gray-500">Dernière connexion</dt>
+            <dd class="font-medium text-gray-900">{{ user.last_login|date:"d/m/Y H:i"|default:"—" }}</dd>
+          </div>
+        </dl>
+
+        <div class="flex flex-col gap-3 pt-6 mt-6 border-t border-gray-100 sm:flex-row">
+          <a href="{% url 'password_change' %}"
+             class="inline-flex items-center justify-center h-9 px-4 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50">
+            Changer le mot de passe
+          </a>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit"
+                    class="inline-flex items-center justify-center w-full h-9 px-4 text-sm font-medium text-white transition-colors bg-teal-600 rounded-md shadow-sm hover:bg-teal-700 sm:w-auto">
+              Se déconnecter
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <a href="{% url 'index' %}"
+         class="text-sm text-gray-500 underline underline-offset-4 hover:text-teal-700">
+        Retour à l'accueil
+      </a>
+    </div>
+  </section>
+{% endblock %}
