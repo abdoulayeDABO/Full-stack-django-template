@@ -11,8 +11,8 @@ Guide pour lancer et développer le projet en local.
 ## Installation locale
 
 ```bash
-git clone <votre-repo>
-cd django-fullstack-template
+git clone https://github.com/abdoulayeDABO/Full-stack-django-template.git
+cd Full-stack-django-template
 
 python -m venv .venv
 source .venv/bin/activate
