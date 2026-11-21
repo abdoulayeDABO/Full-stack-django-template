@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.test import TestCase, override_settings
@@ -118,16 +120,31 @@ class PasswordResetTests(TestCase):
             "carol", email="carol@example.com", password=PASSWORD
         )
 
-    @override_settings(
-        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
-    )
-    def test_sends_reset_email(self):
+    @patch("accounts.forms.send_email.delay")
+    def test_enqueues_reset_email(self, delay):
         response = self.client.post(
             reverse("password_reset"), {"email": "carol@example.com"}
         )
         self.assertRedirects(response, reverse("password_reset_done"))
+        delay.assert_called_once()
+        subject, body, from_email, recipients = delay.call_args.args
+        self.assertIn("/accounts/reset/", body)
+        self.assertEqual(recipients, ["carol@example.com"])
+
+
+class CeleryEmailTaskTests(TestCase):
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+    )
+    def test_send_email_task_sends_mail(self):
+        from accounts.tasks import send_email
+
+        result = send_email.apply(
+            args=("Sujet", "Corps", "from@example.com", ["to@example.com"])
+        )
+        self.assertTrue(result.successful())
         self.assertEqual(len(mail.outbox), 1)
-        self.assertIn("/accounts/reset/", mail.outbox[0].body)
+        self.assertEqual(mail.outbox[0].subject, "Sujet")
 
 
 class PasswordChangeTests(TestCase):

@@ -6,8 +6,10 @@ from django.contrib.auth.forms import (
     SetPasswordForm,
     UserCreationForm,
 )
+from django.template import loader
 
 from .models import User
+from .tasks import send_email
 
 INPUT_CLASSES = (
     "flex h-9 w-full rounded-md border border-gray-200 bg-transparent px-3 py-1 "
@@ -58,6 +60,21 @@ class StyledAuthenticationForm(StyledFormMixin, AuthenticationForm):
 
 class StyledPasswordResetForm(StyledFormMixin, PasswordResetForm):
     labels = {"email": "Email"}
+
+    def send_mail(
+        self,
+        subject_template_name,
+        email_template_name,
+        context,
+        from_email,
+        to_email,
+        html_email_template_name=None,
+    ):
+        subject = "".join(
+            loader.render_to_string(subject_template_name, context).splitlines()
+        )
+        body = loader.render_to_string(email_template_name, context)
+        send_email.delay(subject, body, from_email, [to_email])
 
 
 class StyledSetPasswordForm(StyledFormMixin, SetPasswordForm):
