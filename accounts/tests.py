@@ -60,6 +60,23 @@ class ProfileTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Mon profil")
 
+    def test_updates_profile(self):
+        self.client.login(username="erin", password=PASSWORD)
+        response = self.client.post(
+            reverse("profile"),
+            {
+                "username": "erin",
+                "first_name": "Erin",
+                "last_name": "Doe",
+                "email": "erin@example.com",
+            },
+        )
+        self.assertRedirects(response, reverse("profile"))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Erin")
+        self.assertEqual(self.user.last_name, "Doe")
+        self.assertEqual(self.user.email, "erin@example.com")
+
 
 class PasswordResetTests(TestCase):
     def setUp(self):

@@ -11,26 +11,37 @@
       </div>
 
       <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
-        <dl class="grid gap-6 sm:grid-cols-2">
-          <div class="flex flex-col gap-1">
-            <dt class="text-sm text-gray-500">Nom d'utilisateur</dt>
-            <dd class="font-medium text-gray-900">{{ user.username }}</dd>
-          </div>
-          <div class="flex flex-col gap-1">
-            <dt class="text-sm text-gray-500">Email</dt>
-            <dd class="font-medium text-gray-900">{{ user.email|default:"—" }}</dd>
-          </div>
-          <div class="flex flex-col gap-1">
-            <dt class="text-sm text-gray-500">Inscrit le</dt>
-            <dd class="font-medium text-gray-900">{{ user.date_joined|date:"d/m/Y" }}</dd>
-          </div>
-          <div class="flex flex-col gap-1">
-            <dt class="text-sm text-gray-500">Dernière connexion</dt>
-            <dd class="font-medium text-gray-900">{{ user.last_login|date:"d/m/Y H:i"|default:"—" }}</dd>
-          </div>
-        </dl>
+        <h2 class="text-lg font-semibold text-gray-900">Informations</h2>
 
-        <div class="flex flex-col gap-3 pt-6 mt-6 border-t border-gray-100 sm:flex-row">
+        <form method="post" class="flex flex-col gap-4 mt-4">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="p-3 text-sm text-red-700 bg-red-50 rounded-md [&_ul]:p-0 [&_ul]:m-0 [&_ul]:list-none">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          {% for field in form %}
+            {% include "accounts/_field.html" %}
+          {% endfor %}
+
+          <div class="pt-2">
+            <button type="submit"
+                    class="inline-flex items-center justify-center h-9 px-4 text-sm font-medium text-white transition-colors bg-teal-600 rounded-md shadow-sm hover:bg-teal-700">
+              Enregistrer
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="p-6 bg-white border border-gray-200 rounded-lg shadow-sm">
+        <h2 class="text-lg font-semibold text-gray-900">Sécurité</h2>
+        <p class="mt-1 text-sm text-gray-500">
+          Modifiez votre mot de passe ou déconnectez-vous.
+        </p>
+
+        <div class="flex flex-col gap-3 mt-4 sm:flex-row">
           <a href="{% url 'password_change' %}"
              class="inline-flex items-center justify-center h-9 px-4 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50">
             Changer le mot de passe

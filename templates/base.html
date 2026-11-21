@@ -10,6 +10,15 @@
   </head>
   <body class="flex flex-col min-h-screen antialiased text-gray-900 bg-white">
     <main class="flex-1">
+      {% if messages %}
+        <div class="max-w-5xl px-6 pt-4 mx-auto space-y-2">
+          {% for message in messages %}
+            <div class="p-3 text-sm text-teal-800 border border-teal-100 rounded-md bg-teal-50">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
       {% block content %}{% endblock %}
     </main>
 

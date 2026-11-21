@@ -73,3 +73,21 @@ class StyledPasswordChangeForm(StyledFormMixin, PasswordChangeForm):
         "new_password1": "Nouveau mot de passe",
         "new_password2": "Confirmation du nouveau mot de passe",
     }
+
+
+class ProfileForm(StyledFormMixin, forms.ModelForm):
+    labels = {
+        "username": "Nom d'utilisateur",
+        "first_name": "Prénom",
+        "last_name": "Nom",
+        "email": "Email",
+    }
+
+    class Meta:
+        model = User
+        fields = ("username", "first_name", "last_name", "email")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["email"].required = True
+
