@@ -6,3 +6,4 @@ python-dotenv==1.2.4
 celery[redis]==5.7.0
 django-storages[s3]==1.14.6
 Pillow==12.3.0
+psycopg[binary]==3.3.9
