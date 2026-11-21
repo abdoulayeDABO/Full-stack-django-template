@@ -56,6 +56,41 @@
         </div>
       </div>
 
+      <div class="p-6 bg-white border border-red-200 rounded-lg shadow-sm" x-data="{ confirm: false }">
+        <h2 class="text-lg font-semibold text-red-600">Zone de danger</h2>
+        <p class="mt-1 text-sm text-gray-500">
+          La suppression désactive votre compte. Vos données sont conservées (soft delete).
+        </p>
+
+        <button type="button"
+                x-show="!confirm"
+                @click="confirm = true"
+                class="inline-flex items-center justify-center h-9 px-4 mt-4 text-sm font-medium text-red-600 transition-colors bg-white border border-red-300 rounded-md shadow-sm hover:bg-red-50">
+          Supprimer mon compte
+        </button>
+
+        <form x-show="confirm"
+              x-cloak
+              method="post"
+              action="{% url 'delete_account' %}"
+              class="flex flex-col gap-4 mt-4">
+          {% csrf_token %}
+          {% include "accounts/_field.html" with field=delete_form.password %}
+
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <button type="submit"
+                    class="inline-flex items-center justify-center h-9 px-4 text-sm font-medium text-white transition-colors bg-red-600 rounded-md shadow-sm hover:bg-red-700">
+              Confirmer la suppression
+            </button>
+            <button type="button"
+                    @click="confirm = false"
+                    class="inline-flex items-center justify-center h-9 px-4 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-200 rounded-md shadow-sm hover:bg-gray-50">
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+
       <a href="{% url 'index' %}"
          class="text-sm text-gray-500 underline underline-offset-4 hover:text-teal-700">
         Retour à l'accueil

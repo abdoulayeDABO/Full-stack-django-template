@@ -20,6 +20,7 @@ urlpatterns = [
     ),
     path("signup/", views.signup, name="signup"),
     path("profile/", views.profile, name="profile"),
+    path("delete/", views.delete_account, name="delete_account"),
     path(
         "password-reset/",
         auth_views.PasswordResetView.as_view(

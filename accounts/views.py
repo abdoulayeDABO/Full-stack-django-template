@@ -1,9 +1,10 @@
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.views.decorators.http import require_POST
 
-from .forms import ProfileForm, SignupForm
+from .forms import DeleteAccountForm, ProfileForm, SignupForm
 
 
 def signup(request):
@@ -33,4 +34,25 @@ def profile(request):
     else:
         form = ProfileForm(instance=request.user)
 
-    return render(request, "accounts/profile.html", {"form": form})
+    return render(
+        request,
+        "accounts/profile.html",
+        {
+            "form": form,
+            "delete_form": DeleteAccountForm(user=request.user),
+        },
+    )
+
+
+@login_required
+@require_POST
+def delete_account(request):
+    form = DeleteAccountForm(request.POST, user=request.user)
+    if form.is_valid():
+        request.user.soft_delete()
+        logout(request)
+        messages.success(request, "Votre compte a été supprimé.")
+        return redirect("index")
+
+    messages.error(request, "Mot de passe incorrect.")
+    return redirect("profile")

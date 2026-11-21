@@ -91,3 +91,19 @@ class ProfileForm(StyledFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["email"].required = True
 
+
+class DeleteAccountForm(StyledFormMixin, forms.Form):
+    password = forms.CharField(
+        label="Mot de passe",
+        widget=forms.PasswordInput,
+    )
+
+    def __init__(self, *args, user=None, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_password(self):
+        password = self.cleaned_data["password"]
+        if not self.user.check_password(password):
+            raise forms.ValidationError("Mot de passe incorrect.")
+        return password

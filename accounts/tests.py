@@ -59,6 +59,7 @@ class ProfileTests(TestCase):
         response = self.client.get(reverse("profile"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Mon profil")
+        self.assertContains(response, "Zone de danger")
 
     def test_updates_profile(self):
         self.client.login(username="erin", password=PASSWORD)
@@ -76,6 +77,39 @@ class ProfileTests(TestCase):
         self.assertEqual(self.user.first_name, "Erin")
         self.assertEqual(self.user.last_name, "Doe")
         self.assertEqual(self.user.email, "erin@example.com")
+
+
+class DeleteAccountTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("frank", password=PASSWORD)
+        self.client.login(username="frank", password=PASSWORD)
+
+    def test_wrong_password_keeps_account(self):
+        response = self.client.post(
+            reverse("delete_account"), {"password": "WrongPass123!"}
+        )
+        self.assertRedirects(response, reverse("profile"))
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_deleted)
+        self.assertTrue(self.user.is_active)
+
+    def test_soft_deletes_account(self):
+        response = self.client.post(reverse("delete_account"), {"password": PASSWORD})
+        self.assertRedirects(response, reverse("index"))
+
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_deleted)
+        self.assertFalse(self.user.is_active)
+
+        login_response = self.client.post(
+            reverse("login"), {"username": "frank", "password": PASSWORD}
+        )
+        self.assertEqual(login_response.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_get_not_allowed(self):
+        response = self.client.get(reverse("delete_account"))
+        self.assertEqual(response.status_code, 405)
 
 
 class PasswordResetTests(TestCase):
