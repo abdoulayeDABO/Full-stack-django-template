@@ -4,6 +4,7 @@ from django.utils import timezone
 
 
 class User(AbstractUser):
+    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
 
     @property

@@ -20,6 +20,11 @@ INPUT_CLASSES = (
 CHECKBOX_CLASSES = (
     "h-4 w-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
 )
+FILE_CLASSES = (
+    "block w-full text-sm text-gray-700 "
+    "file:mr-4 file:rounded-md file:border-0 file:bg-teal-600 file:px-4 file:py-2 "
+    "file:text-sm file:font-medium file:text-white hover:file:bg-teal-700"
+)
 
 
 class StyledFormMixin:
@@ -36,6 +41,8 @@ class StyledFormMixin:
                 field.help_text = ""
             if isinstance(widget, forms.CheckboxInput):
                 widget.attrs.setdefault("class", CHECKBOX_CLASSES)
+            elif isinstance(widget, forms.ClearableFileInput):
+                widget.attrs.setdefault("class", FILE_CLASSES)
             else:
                 widget.attrs.setdefault("class", INPUT_CLASSES)
 
@@ -98,15 +105,32 @@ class ProfileForm(StyledFormMixin, forms.ModelForm):
         "first_name": "Prénom",
         "last_name": "Nom",
         "email": "Email",
+        "avatar": "Photo de profil",
     }
 
     class Meta:
         model = User
-        fields = ("username", "first_name", "last_name", "email")
+        fields = ("username", "first_name", "last_name", "email", "avatar")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["email"].required = True
+
+    def save(self, commit=True):
+        old_avatar = None
+        if self.instance.pk and "avatar" in self.changed_data:
+            old_avatar = (
+                User.objects.filter(pk=self.instance.pk)
+                .values_list("avatar", flat=True)
+                .first()
+            )
+
+        user = super().save(commit=commit)
+
+        if commit and old_avatar and old_avatar != user.avatar.name:
+            user.avatar.storage.delete(old_avatar)
+
+        return user
 
 
 class DeleteAccountForm(StyledFormMixin, forms.Form):

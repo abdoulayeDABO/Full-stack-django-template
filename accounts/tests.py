@@ -1,9 +1,14 @@
+import io
+import shutil
+import tempfile
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from PIL import Image
 
 User = get_user_model()
 
@@ -61,7 +66,9 @@ class ProfileTests(TestCase):
         response = self.client.get(reverse("profile"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Mon profil")
+        self.assertContains(response, "Modifier le profil")
         self.assertContains(response, "Zone de danger")
+        self.assertNotContains(response, "Currently:")
 
     def test_updates_profile(self):
         self.client.login(username="erin", password=PASSWORD)
@@ -79,6 +86,66 @@ class ProfileTests(TestCase):
         self.assertEqual(self.user.first_name, "Erin")
         self.assertEqual(self.user.last_name, "Doe")
         self.assertEqual(self.user.email, "erin@example.com")
+
+
+class ProfileImageTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("gina", password=PASSWORD)
+        self.client.login(username="gina", password=PASSWORD)
+        self.media_dir = tempfile.mkdtemp()
+        self.override = override_settings(
+            MEDIA_ROOT=self.media_dir,
+            STORAGES={
+                "default": {
+                    "BACKEND": "django.core.files.storage.FileSystemStorage",
+                    "OPTIONS": {"location": self.media_dir},
+                },
+                "staticfiles": {
+                    "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+                },
+            },
+        )
+        self.override.enable()
+        self.addCleanup(self.override.disable)
+        self.addCleanup(shutil.rmtree, self.media_dir, True)
+
+    def _png(self):
+        buffer = io.BytesIO()
+        Image.new("RGB", (10, 10), "teal").save(buffer, format="PNG")
+        return SimpleUploadedFile(
+            "avatar.png", buffer.getvalue(), content_type="image/png"
+        )
+
+    def _post_avatar(self):
+        return self.client.post(
+            reverse("profile"),
+            {
+                "username": "gina",
+                "first_name": "",
+                "last_name": "",
+                "email": "gina@example.com",
+                "avatar": self._png(),
+            },
+        )
+
+    def test_upload_avatar(self):
+        response = self._post_avatar()
+        self.assertRedirects(response, reverse("profile"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.avatar)
+
+    def test_replacing_avatar_deletes_old_file(self):
+        self._post_avatar()
+        self.user.refresh_from_db()
+        storage = self.user.avatar.storage
+        old_name = self.user.avatar.name
+        self.assertTrue(storage.exists(old_name))
+
+        self._post_avatar()
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.avatar.name, old_name)
+        self.assertFalse(storage.exists(old_name))
+        self.assertTrue(storage.exists(self.user.avatar.name))
 
 
 class DeleteAccountTests(TestCase):

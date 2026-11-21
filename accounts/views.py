@@ -26,7 +26,7 @@ def signup(request):
 @login_required
 def profile(request):
     if request.method == "POST":
-        form = ProfileForm(request.POST, instance=request.user)
+        form = ProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, "Vos informations ont été mises à jour.")
@@ -40,6 +40,7 @@ def profile(request):
         {
             "form": form,
             "delete_form": DeleteAccountForm(user=request.user),
+            "editing": request.method == "POST",
         },
     )
 
